@@ -8,7 +8,13 @@ All implementations will be coded in Python.
 
 Let's start ! 
 
-- [ ] Download some CNF instances
-- [ ] Read and load input data
-- [ ] Create a common SAT solver e.g. miniSAT
-- [ ] Implement my own SAT solver. This step includes more substeps....
+- [x] Download / create some CNF instances
+- [x] Read and load input data => dimacs_parser.py
+- [x] Create a common SAT solver e.g. original dpll_solver.py
+
+In next steps => try to involve the original sat solver with its known variants and additional features in order to boost the search, e.g. CDCL-solver
+
+
+
+ 
+
