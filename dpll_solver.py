@@ -4,9 +4,17 @@
 '''
 
 from dimacs_parser import parse
-from random import random
+import random
 import sys
 
+
+# Boolean Constraint Propagation (BCP)
+# Input : an input formula F, a litteral L
+# Output :  a modified formula F'
+# Core idea: 
+#           if L in C  => remove C 
+#           if -L in C => remove -L from C
+#           else       => keep C
 def bcp(formula, unit):
     modified = []
     for clause in formula:
@@ -20,6 +28,7 @@ def bcp(formula, unit):
     return modified
 
 
+# Count the number of occurences of each litteral in the formula
 def get_counter(formula):
     counter = {}
     for clause in formula:
@@ -30,19 +39,24 @@ def get_counter(formula):
                 counter[literal] = 1
     return counter
 
-
+# Find pure litterals then BCP w.r.t. these pure litterals
+# Return a reduced formula after BCP & an assignement for these pure litterals
 def pure_literal(formula):
     counter = get_counter(formula)
     assignment = []
     pures = []  # [ x for x,y in counter.items() if -x not in counter ]
     for literal, _ in counter.items():
-        if -literal not in counter: pures.append(literal)
+        if -literal not in counter: 
+            pures.append(literal)
     for pure in pures:
         formula = bcp(formula, pure)
     assignment += pures
     return formula, assignment
 
-
+# Unit Propagation (UP)
+# Input : a formula F
+# Ouput : a modified formula
+# Core idea: find unit clauses (with len=1) and BCP w.r.t these unit variables
 def unit_propagation(formula):
     assignment = []
     unit_clauses = [c for c in formula if len(c) == 1]
@@ -57,12 +71,14 @@ def unit_propagation(formula):
         unit_clauses = [c for c in formula if len(c) == 1]
     return formula, assignment
 
-
+# Variable selection heuristics: Choosing randomly !!!
 def variable_selection(formula):
     counter = get_counter(formula)
-    return random.choice(counter.keys())
+    return random.choice(list(counter.keys()))
 
 
+# Backtracking when formula is UNSAT
+# This is a recursive function
 def backtracking(formula, assignment):
     formula, pure_assignment = pure_literal(formula)
     formula, unit_assignment = unit_propagation(formula)
@@ -78,7 +94,10 @@ def backtracking(formula, assignment):
         solution = backtracking(bcp(formula, -variable), assignment + [-variable])
     return solution
 
-
+# Main function : solve
+# Pseudo-code:
+#       - Read CNF
+#       - Backtrack recursively : Unit, pure, variable selection -> BCP 
 def solve(input_cnf_file):
     clauses, nvars = parse(input_cnf_file)
     solution = backtracking(clauses, [])
