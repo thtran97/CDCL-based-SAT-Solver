@@ -14,6 +14,19 @@ Let's start !
 
 In next steps => try to involve the original sat solver with its known variants and additional features in order to boost the search, e.g. CDCL-solver
 
+- Add verbose option : if verbose mode is on, let's plot "problem statistics" and "search statistics" => like minisat
+
+    + [ ] Search statistics: https://github.com/niklasso/minisat/blob/master/minisat/core/Solver.cc#L856
+
+    + [ ] Problem statistics: https://github.com/niklasso/minisat/blob/master/minisat/core/Main.cc#L92 
+
+
+# TODO
+ 
+- [ ] Implement function "Conflict analysis"
+- [ ] Implement function "Backtracking"
+- [ ] Implement fucntion "Search"
+
 
 
  

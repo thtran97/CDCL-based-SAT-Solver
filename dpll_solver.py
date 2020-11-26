@@ -66,7 +66,7 @@ def unit_propagation(formula):
         assignment += [unit[0]]
         if formula == -1:
             return -1, []
-        if not formula:
+        if not formula: 
             return formula, assignment
         unit_clauses = [c for c in formula if len(c) == 1]
     return formula, assignment
@@ -87,24 +87,33 @@ def backtracking(formula, assignment):
         return []
     if not formula:
         return assignment
-
-    variable = variable_selection(formula)
-    solution = backtracking(bcp(formula, variable), assignment + [variable])
-    if not solution:
-        solution = backtracking(bcp(formula, -variable), assignment + [-variable])
-    return solution
-
+    
+    if len(get_counter(formula)) > 0:
+        variable = variable_selection(formula)
+        solution = backtracking(bcp(formula, variable), assignment + [variable])
+        if not solution:
+            solution = backtracking(bcp(formula, -variable), assignment + [-variable])
+        return solution
+    else: 
+        return assignment
 # Main function : solve
 # Pseudo-code:
 #       - Read CNF
 #       - Backtrack recursively : Unit, pure, variable selection -> BCP 
-def solve(input_cnf_file):
-    clauses, nvars = parse(input_cnf_file)
+def solve(input_cnf_file, verbose):
+    clauses, nvars = parse(input_cnf_file, verbose)
     solution = backtracking(clauses, [])
+    if verbose:
+        print('=====================[ Search Statistics  ]=====================')
+        print('|                                                              |')
     if solution:
         solution += [x for x in range(1, nvars + 1) if x not in solution and -x not in solution]
         solution.sort(key=lambda x: abs(x))
-        print('s SATISFIABLE')
-        print('v ' + ' '.join([str(x) for x in solution]) + ' 0')
+        if verbose:
+            print('=====================[       Result       ]=====================')
+            print('s SATISFIABLE')
+            print('v ' + ' '.join([str(x) for x in solution]) + ' 0')
     else:
-        print('s UNSATISFIABLE')
+        if verbose:
+            print('=====================[       Result       ]=====================')
+            print('s UNSATISFIABLE')

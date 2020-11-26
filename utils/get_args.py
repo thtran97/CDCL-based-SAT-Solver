@@ -7,5 +7,9 @@ def get_args():
         metavar='I',
         default='cnf_instances/test.cnf',
         help='The DIMACS file')
+    argparser.add_argument(
+        '-v', '--verbose',
+        default=1,    
+        help='Verbose option')
     args = argparser.parse_args()
     return args
