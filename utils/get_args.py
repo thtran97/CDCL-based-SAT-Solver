@@ -5,7 +5,15 @@ def get_args():
     argparser.add_argument(
         '-i', '--input',
         metavar='I',
-        default='cnf_instances/test.cnf',
+        # default='cnf_instances/Steiner-9-5-bce.cnf',
+        # default='cnf_instances/Steiner-15-7-bce.cnf',
+        # default='cnf_instances/Steiner-27-10-bce.cnf',
+        # default='cnf_instances/test.cnf',
+        # default='cnf_instances/uf20-01.cnf',
+        # default='cnf_instances/uf50-01.cnf',
+        # default='cnf_instances/uf100-01.cnf',
+        # default='cnf_instances/uuf50-UNSAT.cnf',
+        default='cnf_instances/uuf100-UNSAT.cnf',
         help='The DIMACS file')
     argparser.add_argument(
         '-v', '--verbose',
