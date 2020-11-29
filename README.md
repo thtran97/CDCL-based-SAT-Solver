@@ -21,13 +21,24 @@ In next steps => try to involve the original sat solver with its known variants 
     + [ ] Problem statistics: https://github.com/niklasso/minisat/blob/master/minisat/core/Main.cc#L92 
 
 
-# TODO
+# Updates
  
-- [ ] Implement function "Conflict analysis"
-- [ ] Implement function "Backtracking"
-- [ ] Implement fucntion "Search"
+- [X] Implement function "Conflict analysis"
+- [X] Implement function "Backtracking"
+- [X] Implement fucntion "Search"
+- [X] CDCL Search
+- [X] Two-watched literals
+- [X] Simple restart
+- [X] Simple branching heuristics 
 
 
+# Analytics
 
+Solver now can answer correctly some simple instances. But with more harder instances, the computational complexity seems to be a hard challenge => try to solve this issue by update new mechanisms and simplify the code 
+
+# TODO
+
+- [ ] Clean and simplify code if possible
+- [ ] Add complex mechanism of restart and branching heuristics 
  
 
