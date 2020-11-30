@@ -25,18 +25,18 @@ More precisely, some necessary functions of CDCL solver are the followings:
 - [X] Simple restart
 - [X] Simple branching heuristics 
 
-# How to launch? 
+## How to launch? 
 
 Simply put, just install some SAT benchmarking instances and declare its path when lauching main.py. Let's wait for the response ! 
 Something like this will appear : 
 
 ![png](output.png)
 
-# Analytics
+## Analytics
 
 Solver now can answer correctly some simple instances. But with harder instances, the computational complexity seems to be a hard challenge => try to solve this issue by update new mechanisms and simplify the code 
 
-# TODO
+## TODO
 
 - [ ] Simplify code if possible => Honestly, there exists many parts of codes in which, maybe, I complicated matters :(  
 - [ ] Add complex mechanism of restart and branching heuristics => Seems challenging but, certainly possible ! 
@@ -64,9 +64,9 @@ More precisely, following implementations can be considered:
 
 - Preprocessing and inprocessing 
 
-# Further improvement => Hybrid solution !! 
+## Further improvement => Hybrid solution !! 
 
-# References
+## References
 
 - MiniSat open source [[Git](https://github.com/niklasso/minisat)]
 - PySat open source [[Git](https://github.com/pysathq/pysat)] [[Doc](https://pysathq.github.io/#)]
