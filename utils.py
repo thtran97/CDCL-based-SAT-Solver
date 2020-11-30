@@ -11,9 +11,9 @@ def get_args():
         # default='cnf_instances/test.cnf',
         # default='cnf_instances/uf20-01.cnf',
         # default='cnf_instances/uf50-01.cnf',
-        # default='cnf_instances/uf100-01.cnf',
-        # default='cnf_instances/uuf50-UNSAT.cnf',
-        default='cnf_instances/uuf100-UNSAT.cnf',
+        # default='cnf_instances/uf50-01.cnf',
+        default='cnf_instances/uuf50-01.cnf',
+        # default='cnf_instances/uuf100-UNSAT.cnf',
         help='The DIMACS file')
     argparser.add_argument(
         '-v', '--verbose',

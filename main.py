@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import numpy as np
-from utils.get_args import get_args
+from utils import get_args
 # import dpll_solver
-from cdcl_solver2 import CDCL_Solver
+from cdcl_solver import CDCL_Solver
 # import sys
 # sys.setrecursionlimit(1500)
 

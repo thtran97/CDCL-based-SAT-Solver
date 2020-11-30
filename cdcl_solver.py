@@ -1,114 +1,247 @@
-
 from dimacs_parser import parse
 import numpy as np
 import random
+import time
+# from cnf_data_structure import Clause, CNF_Formula, Implication_Graph
+from clause import Clause
+from lazy_clause import Lazy_Clause
+from cnf import CNF_Formula
+from implication_graph import Implication_Graph
 
-class CDCL_Solver:
-    
-    def __init__(self,input_cnf_file, verbose):
+class CDCL_Solver: 
+    def __init__(self, input_cnf_file, verbose):
+        self.assert_mode = False
         self.verbose = verbose
-        self.formula, self.nvars = parse(input_cnf_file, verbose)
-        self.nclauses = len(self.formula)
-        self.dual_formula = [list() for i in range(len(self.formula))]
-        self.learnt_clauses = []
-        self.conflict_clause = []
-        self.assignment = np.zeros(self.nvars)
+        self.list_clause, self.nvars = parse(input_cnf_file, self.verbose)
+        self.formula = CNF_Formula(self.list_clause)
+        self.graph = Implication_Graph()
         self.decision_level = 0
-        self.branching_count = 1
-        self.graph = dict()    
-
-    def bcp(self, unit):
-        for i, clause in enumerate(self.formula):
-            if unit in clause:
-                self.dual_formula[i] += clause
-                self.formula[i] = [True]
-            if -unit in clause:
-                self.dual_formula[i].append(-unit)
-                self.formula[i] = [x for x in clause if x != -unit]
-                if len(self.formula[i]) == 0: 
-                    self.conflict_clause = self.dual_formula[i]
-                    self.formula[i] = [False] #CONFLICT
-                    return -1
-        return 0 # NO CONFLiCT
-
-    def unit_propagate(self):
-        c_i = 0
-        while c_i < self.nclauses:
-            if len(self.formula[c_i]) == 1 and self.formula[c_i][0] not in [True,False]: # c_i is a unit clause
-                unit = self.formula[c_i][0]
-                antecedent = self.dual_formula[c_i]
-                self.branching_count += 1
-                self.update_implication_graph(unit, antecedent)
-                if self.bcp(unit) == -1: # CONFLICT
-                    break
-                c_i = 0
-            else:
-                c_i += 1
-        return 0 # NO CONFLICT
+        # self.propagation_count = 0
+        self.nb_clauses = len(self.list_clause)
+        self.nb_learnt_clause = 0
+        self.nb_decisions = 0
+        self.restart_count = 0
+        self.conflict_count = 0
+        self.analysis_count = 0
+        self.restart_rate = 100
+        self.is_sat = 0 
+        self.conflict = None
+    
+    def restart(self):
+        self.formula = CNF_Formula(self.list_clause)
+        self.graph = Implication_Graph()
+        self.decision_level = 0
+        self.restart_count += 1
+        self.conflict_count = 0
+        self.is_sat = 0
+        self.conflict = None
+    
+    def conflict_analysis(self, conflict_clause): 
+        # RETURN : learnt clause, and backtrack_level
+        # assert conflict_clause.size > 0
+        self.analysis_count += 1
+        if self.analysis_count >= 100:
+            self.analysis_count = 0
+            return None, -100
+        w = conflict_clause
+        pool_literal = w.literal_at_level(self.decision_level)
+        # print(self.decision_level)
+        # w.print_info()
+        assert len(pool_literal) > 0
+        if len(pool_literal) == 1:
+            self.analysis_count = 0
+            return w, w.get_backtrack_level()
+        else: 
+            i = 0
+            antecedent = None
+            while i< len(pool_literal) and antecedent is None:
+                conflict_literal = pool_literal[i]
+                antecedent = self.graph.get_antecedent(-conflict_literal)
+                i += 1
+            if antecedent is None:
+                w.print_info()
+                print(pool_literal)
+                for i in pool_literal:
+                    print(self.graph.graph[i])
+            assert antecedent is not None
+            w = w.resolution_operate(antecedent, conflict_literal)
+            return self.conflict_analysis(w)
 
     def pick_branching_variable(self):
-        # In the first manner, we choose randomly an unassigned variable
-        # Then assign TRUE 
-        unassiged_variables = [i for i in range(self.nvars) if self.assignment[i] == 0]
-        decision = random.choice(unassiged_variables)
-        self.decision_level += 1
-        self.branching_count = 0
-        self.update_implication_graph(decision, [])
+        # TODO: Updating heuristics for choosing next branching variables
+        ## Random choice
+        # unassigned_variables = [x+1 for x in range(self.nvars) if x+1 not in self.graph.assigned_vars]
+        # # decision = random.choice(unassigned_variables)
+        # decision = random.choice([decision, -decision])
+        ## Most frequent var first
+        counter = self.formula.get_counter()
+        assert len(counter) > 0
+        # i = 0 
+        # most_frequency = counter[list(counter.keys())[i]]
+        # pool_literal = []
+        # while len(pool_literal) == 0:
+        #     for item in counter.keys():
+        #         if counter[item] == most_frequency and (abs(item) not in self.graph.assigned_vars):
+        #             pool_literal.append(item)
+        #     if len(pool_literal)==0 and i<len(list(counter.keys())):
+        #         i += 1
+        #         most_frequency = counter[list(counter.keys())[i]]
+        # decision =  random.choice(pool_literal)
+        # i = 0 
+        # decision = list(counter.keys())[i]
+        # while i<len(counter) and abs(decision) in self.graph.assigned_vars:
+        #     i += 1
+        #     decision = list(counter.keys())[i]
+
+        pool_literal = list(counter.keys())
+        decision = random.choice(pool_literal)
+        i = 0
+        while i < len(pool_literal):
+            decision = pool_literal[i]
+            if decision not in self.graph.assigned_vars:
+                break
+            i += 1
+        # print(pool_literal)
+        if decision in self.graph.assigned_vars or -decision in self.graph.assigned_vars:
+            def unassigned_criterion_sat(x): 
+                return (x not in self.graph.assigned_vars) and (-x not in self.graph.assigned_vars)
+            unassigned_variables = [x+1 for x in range(self.nvars) if unassigned_criterion_sat(x+1)]
+            # print(unassigned_variables)
+            decision = random.choice(unassigned_variables)        # print(pool_literal)
+            # print(self.graph.assigned_vars)
+            # print(decision)
+        assert decision not in self.graph.assigned_vars
+        assert -decision not in self.graph.assigned_vars
+        # # Update info
+        # self.decision_level += 1
+        # self.graph.add_node(decision, None, self.decision_level)
+        return decision
+
+    def is_all_assigned(self):
+        return self.nvars == len(self.graph.assigned_vars)
+
+    def solve(self):
+        # Problem now is :
+        # How to update the implication graph every unit propagation ! 
+        # Some solved issues : a data structure helps store and backtrack easily ! 
+        stop = False
+        initial_time = time.time()
+        self.is_sat, self.conflict =  self.formula.unit_propagate(self.decision_level, self.graph)
+        if self.verbose:
+            print('=====================[  Search Statistics ]=====================')
+            
+
+        while self.is_sat == 0 and not stop: # and not self.is_all_assigned(): #and len(self.formula.get_counter(self.graph.assigned_vars)) > 0:
+            assert self.formula.get_value() == self.is_sat
+            assert self.conflict is None
+            if self.is_all_assigned():
+                print(self.is_sat)
+                print(self.graph.assigned_vars)
+                print(list(set(self.graph.assigned_vars)))
+            assert not self.is_all_assigned() 
+            decision = self.pick_branching_variable()
+            self.nb_decisions += 1
+            self.decision_level += 1
+            self.graph.add_node(decision, None, self.decision_level)
+            self.is_sat, self.conflict = self.formula.bcp(decision, self.decision_level, self.graph)
+            
+            if self.is_sat == 0:
+                if self.is_all_assigned():
+                    list_value = [c.value for c in self.formula.formula]
+                    ind = list_value.index(0)
+                    self.formula.formula[ind].print_info()
+                    print(list_value[:])
+                    print(self.graph.assigned_vars)    
+                    print(decision)
+                assert not self.is_all_assigned()
+                self.is_sat, self.conflict = self.formula.unit_propagate(self.decision_level, self.graph)
+
+            if self.is_sat == 0:
+                assert not self.is_all_assigned()
+
+            if self.is_sat == 1:
+                assert self.formula.get_value() == self.is_sat
+                break
+
+            while self.is_sat == -1 and not stop:
+                assert self.conflict is not None
+                learnt_clause, backtrack_level = self.conflict_analysis(self.conflict)
+                if backtrack_level == -100:
+                    self.restart()      
+                elif backtrack_level == -1 :
+                    self.is_sat = -1 
+                    stop = True
+                else:
+                    self.formula.add_clause(learnt_clause)
+                    self.nb_learnt_clause += 1
+                    self.graph.backtrack(backtrack_level)
+                    self.formula.backtrack(backtrack_level, self.graph)
+                    # print("Backtrack to ", backtrack_level)
+                    self.decision_level = backtrack_level
+                    # self.conflict = None
+                    self.is_sat, self.conflict = self.formula.unit_propagate(self.decision_level, self.graph)
+                    # if self.conflict is not None:
+                        # self.conflict.print_info()
+                    if self.is_sat == 0: 
+                        assert not self.is_all_assigned()
+                ## If too much conflicts, RESTART IT NOW !
+                self.conflict_count += 1
+                if self.conflict_count > self.restart_rate:
+                    self.restart()
 
 
-    def assign(self, litteral, dl):
-        self.assignment[abs(litteral)-1] = litteral
-        self.decision_level = dl
-        self.branching_count = 0
-        self.update_implication_graph(litteral, [])
-        self.bcp(litteral)
+            # print(stop, self.is_sat, self.conflict)
+            # assert self.conflict is None
 
-    def update_implication_graph(self, node, antecedent):
-        self.graph[node] = [antecedent, self.decision_level, self.branching_count] 
-        self.assignment[abs(node)-1] = node
+        assert self.is_sat != 0
+        assert self.is_sat == self.formula.get_value()
+        if self.is_all_assigned():
+            print('All vars assigned !')
+        else: 
+            print('Early quit !')
+            
 
-    def resolution_operator(self,clause1, clause2, var):
-        # resolve operator for two clauses
-        # iff var in one clause & -var in the another
-        resolved_clause = []
-        resolved_clause += [x for x in set(clause1+clause2) if abs(x) != abs(var)]
-        return resolved_clause
+        print('Restart: ', self.restart_count)
+        print('Learnt clauses: ', self.nb_learnt_clause)
+        print('Decisions: ', self.nb_decisions)
+        print('CPU time: {0:10.6f}s '.format(time.time()-initial_time))
         
-    def conflict_analysis(self):
-        backtrack_level = self.decision_level
-        assert self.conflict_clause is not None
-        learnt_clause = self.conflict_clause    
-        previous_clause = []
-        while learnt_clause != previous_clause:
-            previous_clause = learnt_clause
-            priori_order = [list(self.graph.keys()).index(-l) for l in previous_clause]
-            last_recent_litteral = previous_clause[np.argmax(priori_order)]
-            parent, current_dl, _ = self.graph[-last_recent_litteral]  
-            if len(parent) > 0:
-                learnt_clause = self.resolution_operator(previous_clause, parent, last_recent_litteral)
-                backtrack_level = min(backtrack_level, current_dl)  
-            else:
-                learnt_clause = previous_clause
-        if learnt_clause not in self.learnt_clauses:
-            self.learnt_clauses.append(learnt_clause)
-        return backtrack_level
+        if stop: 
+            assert self.is_sat == -1
+            print('UNSAT')
+        elif not stop and self.is_sat == 1:
+            print('SAT')
+        elif not stop and self.is_sat == -1:
+            print('UNSAT')
+        else: #But practically, this should not happen !
+            print('UNRESOLVED !')
 
-    def backtracking(self, formula, assignment):
-        # Clear all bcp at level >= backtrack_level
-        # Change decision variable at backtrack_level
-        # Repeat
-        pass
+        ## Check it
 
+        assigned_vars = self.graph.assigned_vars
+        test_formula = CNF_Formula(self.list_clause)
+        test_formula.formula = [Clause(c) for c in self.list_clause if len(c) > 0]
+        test_graph = Implication_Graph()
+        for i, literal in enumerate(assigned_vars):
+            test_formula.bcp(literal, i, test_graph)
 
-#
-# solver = CDCL_Solver("cnf_instances/test.cnf",1)
-# solver.assign(-7,2)
-# solver.unit_propagate()
+        # if conflict is not None:
+        #     conflict.print_info()
 
+        if self.is_sat == 1:
+            # print(test_formula.value)
+            # test_list_value = [c.value for c in test_formula.formula]
+            # list_value = [c.value for c in self.formula.formula]
+            # print(list_value[:])
+            # print(test_list_value)
+            # print(assigned_vars)
+            assert test_formula.get_value() == 1
+        print('Verified !')
+            
 
+        return self.formula.get_value    
+        
     
 
 
-    
-    
-         
+
