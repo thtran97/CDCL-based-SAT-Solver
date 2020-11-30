@@ -11,7 +11,7 @@ Let's start by:
 - [x] Read and load input data => dimacs_parser.py
 - [x] Specify parameters such as input instances => utils.py
 - [x] Launch SAT solver on terminal => main.py
-- [x] Verbose option : if verbose mode is on, let's plot "problem statistics" and "search statistics" (inspired by minisat, but still need to add & update printed informations)
+- [x] Verbose option : if verbose mode is on, let's plot "problem statistics" and "search statistics" (inspired by minisat, but still need to add & update printed information)
 - [x] Create a basic complete SAT solver e.g. original dpll_solver.py
 - [X] Implement CDCL solver => cdcl_solver.py
 
