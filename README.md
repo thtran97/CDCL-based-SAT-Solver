@@ -1,4 +1,4 @@
-# SAT-Solving
+# CDCL-based SAT Solver
 
 This repo includes my implementations for solving SAT problems as well as its variants. 
 The core idea is firsly to (re)implement complete search algorithms. In particular, this code repository will mainly focus on CDCL solver based on the basic DPLL solver.
