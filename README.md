@@ -28,6 +28,9 @@ More precisely, some necessary functions of CDCL solver are the followings:
 # How to launch? 
 
 Simply put, just install some SAT benchmarking instances and declare its path when lauching main.py. Let's wait for the response ! 
+Something like this will appear : 
+
+![png][output.png]
 
 # Analytics
 
