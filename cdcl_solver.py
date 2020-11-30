@@ -27,6 +27,7 @@ class CDCL_Solver:
         self.conflict = None
     
     def restart(self):
+        # TODO : Implement other restart mechanisms
         self.formula = CNF_Formula(self.list_clause)
         self.graph = Implication_Graph()
         self.decision_level = 0
@@ -39,6 +40,7 @@ class CDCL_Solver:
         # RETURN : learnt clause, and backtrack_level
         self.analysis_count += 1
         if self.analysis_count >= 100:
+            # If conflict analysis is called too long => restart 
             self.analysis_count = 0
             return None, -100
         w = conflict_clause
@@ -54,17 +56,12 @@ class CDCL_Solver:
                 conflict_literal = pool_literal[i]
                 antecedent = self.graph.get_antecedent(-conflict_literal)
                 i += 1
-            if antecedent is None:
-                w.print_info()
-                print(pool_literal)
-                for i in pool_literal:
-                    print(self.graph.graph[i])
             assert antecedent is not None
             w = w.resolution_operate(antecedent, conflict_literal)
             return self.conflict_analysis(w)
 
     def pick_branching_variable(self):
-        # TODO: Updating heuristics for choosing next branching variables
+        # TODO: Updating other heuristics for choosing next branching variables
         ## Random choice
         # unassigned_variables = [x+1 for x in range(self.nvars) if x+1 not in self.graph.assigned_vars]
         # # decision = random.choice(unassigned_variables)
@@ -74,22 +71,21 @@ class CDCL_Solver:
         assert len(counter) > 0
 
         pool_literal = list(counter.keys())
-        decision = random.choice(pool_literal)
+        decision = -1
         i = 0
         while i < len(pool_literal):
             decision = pool_literal[i]
-            if decision not in self.graph.assigned_vars:
+            if decision not in self.graph.assigned_vars and -decision not in self.graph.assigned_vars:
                 break
             i += 1
-        if decision in self.graph.assigned_vars or -decision in self.graph.assigned_vars:
-            def unassigned_criterion_sat(x): 
-                return (x not in self.graph.assigned_vars) and (-x not in self.graph.assigned_vars)
-            unassigned_variables = [x+1 for x in range(self.nvars) if unassigned_criterion_sat(x+1)]
-            decision = random.choice(unassigned_variables)    
+        # if decision in self.graph.assigned_vars or -decision in self.graph.assigned_vars:
+        #     def unassigned_criterion_sat(x): 
+        #         return (x not in self.graph.assigned_vars) and (-x not in self.graph.assigned_vars)
+        #     unassigned_variables = [x+1 for x in range(self.nvars) if unassigned_criterion_sat(x+1)]
+        #     decision = random.choice(unassigned_variables)    
 
         assert decision not in self.graph.assigned_vars
         assert -decision not in self.graph.assigned_vars
-
         return decision
 
     def is_all_assigned(self):
@@ -105,10 +101,6 @@ class CDCL_Solver:
         while self.is_sat == 0 and not stop: 
             assert self.formula.get_value() == self.is_sat
             assert self.conflict is None
-            if self.is_all_assigned():
-                print(self.is_sat)
-                print(self.graph.assigned_vars)
-                print(list(set(self.graph.assigned_vars)))
             assert not self.is_all_assigned() 
             decision = self.pick_branching_variable()
             self.nb_decisions += 1
@@ -117,13 +109,6 @@ class CDCL_Solver:
             self.is_sat, self.conflict = self.formula.bcp(decision, self.decision_level, self.graph)
             
             if self.is_sat == 0:
-                if self.is_all_assigned():
-                    list_value = [c.value for c in self.formula.formula]
-                    ind = list_value.index(0)
-                    self.formula.formula[ind].print_info()
-                    print(list_value[:])
-                    print(self.graph.assigned_vars)    
-                    print(decision)
                 assert not self.is_all_assigned()
                 self.is_sat, self.conflict = self.formula.unit_propagate(self.decision_level, self.graph)
 
@@ -137,6 +122,7 @@ class CDCL_Solver:
             while self.is_sat == -1 and not stop:
                 assert self.conflict is not None
                 learnt_clause, backtrack_level = self.conflict_analysis(self.conflict)
+
                 if backtrack_level == -100:
                     self.restart()      
                 elif backtrack_level == -1 :

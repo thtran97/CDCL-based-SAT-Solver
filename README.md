@@ -41,6 +41,31 @@ Solver now can answer correctly some simple instances. But with harder instances
 - [ ] Simplify code if possible => Honestly, there exists many parts of codes in which, maybe, I complicated matters :(  
 - [ ] Add complex mechanism of restart and branching heuristics => Seems challenging but, certainly possible ! 
 
+More precisely, following implementations can be considered:
+
+- Clause deletion & clause usefulness heuristics => how and when to add/remove/update learnt clauses?
+
+    - [ ] Clause activity
+    - [ ] Literal Block Distance (LBD)
+    - [ ] Clause size
+
+- Variable heuristics => how to choose 'best' unassigned variable to branch?
+
+    - [ ] VSIDS
+    - [ ] Dynamic Largest Individual Sum 
+    - [ ] Learning rate based heuristic
+
+- Restart mechanism => avoid concentrating too much on useless search space
+
+    - [x] Fixed restart
+    - [ ] Geometric restart
+    - [ ] Luby restart
+    - [ ] Glucose restart
+
+- Preprocessing and inprocessing 
+
+# Further improvement => Hybrid solution !! 
+
 # References
 
 - MiniSat open source [[Git](https://github.com/niklasso/minisat)]
