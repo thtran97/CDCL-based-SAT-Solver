@@ -4,8 +4,7 @@ import numpy as np
 from utils import get_args
 # import dpll_solver
 from cdcl_solver import CDCL_Solver
-# import sys
-# sys.setrecursionlimit(1500)
+
 
 def main():
     try:

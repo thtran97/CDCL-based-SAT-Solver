@@ -5,19 +5,14 @@ class CNF_Formula:
     def __init__(self, list_clause):
         # self.formula = [Clause(c) for c in list_clause]
         self.formula = [Lazy_Clause(c) for c in list_clause if len(c) > 0]
-
         self.value = self.get_value()
-        # self.nvars = nvars
-        # self.assignment = Assignment(nvars)
-        # self.nb_propagate = 0
-        # self.max_UP = 100
+        self.nb_original_clauses = len(list_clause)
+        self.MAX_NB_CLAUSE = 2*self.nb_original_clauses
 
     def print_info(self):
         for c in self.formula:
-            # print(c.clause)
             c.print_info()
         print('[F] Truth value: ', self.value)
-        # self.assignment.print_info()
 
     def get_value(self):
         list_values = [c.value for c in self.formula]
@@ -31,6 +26,7 @@ class CNF_Formula:
 
     def get_counter(self):
         counter = {}
+        ## Normal counter : Count the occurence of all unassigned literals
         # for clause in self.formula:
         #     for literal in clause.clause[:clause.size]:
         #         if literal in counter:
@@ -38,7 +34,7 @@ class CNF_Formula:
         #         else:
         #             counter[literal] = 1 
 
-        ## Lazy counter
+        ## Lazy counter :  Count only the occurences of all unassigned references
         unassigned_refs = []
         for clause in self.formula:
             if clause.size == 1:
@@ -66,7 +62,6 @@ class CNF_Formula:
                 conflict_clause = clause
                 break
             elif clause.value == 0:
-                # clause.print_info()
                 assert clause.size > 0
                 # Implication graph is used when the lazy clause is visited
                 if clause.bcp(literal, decision_level, graph) == -1:
@@ -76,12 +71,6 @@ class CNF_Formula:
             elif clause.value == 1:
                 continue
         self.value = self.get_value()
-        # if self.value == 1:
-        #     # list_values = [c.value for c in self.formula]
-        #     # print(list_values)
-        #     print('SAT after BCP')
-        # if self.value == 0:
-        #     print(len(graph.assigned_vars))
         return self.value, conflict_clause
             
     def unit_propagate(self, decision_level, graph=None):
@@ -93,9 +82,6 @@ class CNF_Formula:
             if clause.is_unit():  
                 # unit_literal = clause.clause[0]
                 unit_literal = clause.refA
-                # assert clause.decision_level[clause.indexA] == -1
-                # if clause.decision_level[clause.indexA] != -1:
-                #     clause.print_info()
                 if graph is not None and (unit_literal not in graph.assigned_vars):
                     graph.add_node(unit_literal, clause, decision_level)
                 is_sat, conflict_clause = self.bcp(unit_literal, decision_level, graph)
@@ -108,24 +94,6 @@ class CNF_Formula:
                 i += 1
         return self.value, conflict_clause
 
-    # def unit_propagate(self, decision_level, graph=None):
-    #     unit_clauses = [clause for clause in self.formula if clause.is_unit()]
-    #     self.nb_propagate += 1
-    #     while len(unit_clauses)>0 and self.nb_propagate <= self.max_UP:
-    #         clause = unit_clauses[0]
-    #         unit_literal = clause.clause[0]
-    #         if graph is not None and (unit_literal not in graph.assigned_vars):
-    #             graph.add_node(unit_literal, clause, decision_level)
-    #         conflict_clause = self.bcp(unit_literal, decision_level, graph)
-    #         if conflict_clause is not None:
-    #             return conflict_clause
-    #         else:
-    #             unit_clauses = [clause for clause in self.formula if clause.is_unit()]
-    #     if self.nb_propagate > self.max_UP:
-    #         print("Looping error")
-    #         return -1
-    #     return None 
-
     def backtrack(self, backtrack_level, graph):
         for clause in self.formula:
             clause.restore(backtrack_level, graph)
@@ -137,4 +105,8 @@ class CNF_Formula:
         # TODO: Add strategy for adding/removing learnt clause HERE
         # list_current_clauses = [c.clause for c in self.formula]
         # if clause.clause not in list_current_clauses and len(clause.clause) <= 6:
+        # if len(clause.clause) < 10: 
+        if len(self.formula) > self.MAX_NB_CLAUSE:
+            self.formula.pop(self.nb_original_clauses)
         self.formula += [clause]
+ 

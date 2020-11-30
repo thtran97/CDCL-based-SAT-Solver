@@ -23,8 +23,6 @@ class Implication_Graph:
         for node in reversed(assigned_list):
             if self.graph[node][1] > backtrack_level:
                 self.remove_node(node)
-            # else:
-            #     break   
         list_lvl = [self.graph[item][1] for item in self.graph.keys()]
         if len(list_lvl)>0:
             assert max(list_lvl) <= backtrack_level

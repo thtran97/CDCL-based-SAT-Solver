@@ -16,9 +16,9 @@ class Clause:
     def print_info(self):
         print('[C] Remaining clause: ', self.clause[:self.size])
         # print('[C] Clause size ', self.size)
-        print('[C] Full clause: ', self.clause)
-        print('[C] Truth value: ', self.value, ' (0=unassigned, -1=unsat, 1=sat)')
-        print('[C] Decision level details: ', self.decision_level)
+        # print('[C] Full clause: ', self.clause)
+        # print('[C] Truth value: ', self.value, ' (0=unassigned, -1=unsat, 1=sat)')
+        # print('[C] Decision level details: ', self.decision_level)
         # print('[C] Backtrack level: ', self.get_backtrack_level())
 
     def is_unit(self):
@@ -35,9 +35,6 @@ class Clause:
         return res
 
     def get_backtrack_level(self):
-        # if len(self.decision_level) == 1:
-        #     return -1 
-        # else:
         m1, m2 = -1, -1
         for x in list(set(self.decision_level)):
             if x >= m1:
@@ -75,6 +72,7 @@ class Clause:
         for l in self.clause:
             if -l in self.clause:
                 self.value = 1 #TRUE
+                self.size = 0
                 break
 
     def restore(self, level):

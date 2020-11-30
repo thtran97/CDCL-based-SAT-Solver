@@ -34,7 +34,7 @@ In next steps => try to involve the original sat solver with its known variants 
 
 # Analytics
 
-Solver now can answer correctly some simple instances. But with more harder instances, the computational complexity seems to be a hard challenge => try to solve this issue by update new mechanisms and simplify the code 
+Solver now can answer correctly some simple instances. But with harder instances, the computational complexity seems to be a hard challenge => try to solve this issue by update new mechanisms and simplify the code 
 
 # TODO
 

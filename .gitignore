@@ -6,3 +6,4 @@ __pycache__/dimacs_parser.cpython-38.pyc
 __pycache__/dpll_solver.cpython-38.pyc
 cnf_instances/*
 unit_tests/*
+__pycache__/*

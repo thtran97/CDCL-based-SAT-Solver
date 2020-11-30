@@ -16,7 +16,6 @@ class CDCL_Solver:
         self.formula = CNF_Formula(self.list_clause)
         self.graph = Implication_Graph()
         self.decision_level = 0
-        # self.propagation_count = 0
         self.nb_clauses = len(self.list_clause)
         self.nb_learnt_clause = 0
         self.nb_decisions = 0
@@ -38,15 +37,12 @@ class CDCL_Solver:
     
     def conflict_analysis(self, conflict_clause): 
         # RETURN : learnt clause, and backtrack_level
-        # assert conflict_clause.size > 0
         self.analysis_count += 1
         if self.analysis_count >= 100:
             self.analysis_count = 0
             return None, -100
         w = conflict_clause
         pool_literal = w.literal_at_level(self.decision_level)
-        # print(self.decision_level)
-        # w.print_info()
         assert len(pool_literal) > 0
         if len(pool_literal) == 1:
             self.analysis_count = 0
@@ -76,22 +72,6 @@ class CDCL_Solver:
         ## Most frequent var first
         counter = self.formula.get_counter()
         assert len(counter) > 0
-        # i = 0 
-        # most_frequency = counter[list(counter.keys())[i]]
-        # pool_literal = []
-        # while len(pool_literal) == 0:
-        #     for item in counter.keys():
-        #         if counter[item] == most_frequency and (abs(item) not in self.graph.assigned_vars):
-        #             pool_literal.append(item)
-        #     if len(pool_literal)==0 and i<len(list(counter.keys())):
-        #         i += 1
-        #         most_frequency = counter[list(counter.keys())[i]]
-        # decision =  random.choice(pool_literal)
-        # i = 0 
-        # decision = list(counter.keys())[i]
-        # while i<len(counter) and abs(decision) in self.graph.assigned_vars:
-        #     i += 1
-        #     decision = list(counter.keys())[i]
 
         pool_literal = list(counter.keys())
         decision = random.choice(pool_literal)
@@ -101,37 +81,28 @@ class CDCL_Solver:
             if decision not in self.graph.assigned_vars:
                 break
             i += 1
-        # print(pool_literal)
         if decision in self.graph.assigned_vars or -decision in self.graph.assigned_vars:
             def unassigned_criterion_sat(x): 
                 return (x not in self.graph.assigned_vars) and (-x not in self.graph.assigned_vars)
             unassigned_variables = [x+1 for x in range(self.nvars) if unassigned_criterion_sat(x+1)]
-            # print(unassigned_variables)
-            decision = random.choice(unassigned_variables)        # print(pool_literal)
-            # print(self.graph.assigned_vars)
-            # print(decision)
+            decision = random.choice(unassigned_variables)    
+
         assert decision not in self.graph.assigned_vars
         assert -decision not in self.graph.assigned_vars
-        # # Update info
-        # self.decision_level += 1
-        # self.graph.add_node(decision, None, self.decision_level)
+
         return decision
 
     def is_all_assigned(self):
         return self.nvars == len(self.graph.assigned_vars)
 
-    def solve(self):
-        # Problem now is :
-        # How to update the implication graph every unit propagation ! 
-        # Some solved issues : a data structure helps store and backtrack easily ! 
+    def solve(self): 
         stop = False
         initial_time = time.time()
         self.is_sat, self.conflict =  self.formula.unit_propagate(self.decision_level, self.graph)
         if self.verbose:
             print('=====================[  Search Statistics ]=====================')
             
-
-        while self.is_sat == 0 and not stop: # and not self.is_all_assigned(): #and len(self.formula.get_counter(self.graph.assigned_vars)) > 0:
+        while self.is_sat == 0 and not stop: 
             assert self.formula.get_value() == self.is_sat
             assert self.conflict is None
             if self.is_all_assigned():
@@ -176,22 +147,16 @@ class CDCL_Solver:
                     self.nb_learnt_clause += 1
                     self.graph.backtrack(backtrack_level)
                     self.formula.backtrack(backtrack_level, self.graph)
-                    # print("Backtrack to ", backtrack_level)
                     self.decision_level = backtrack_level
-                    # self.conflict = None
                     self.is_sat, self.conflict = self.formula.unit_propagate(self.decision_level, self.graph)
-                    # if self.conflict is not None:
-                        # self.conflict.print_info()
+
                     if self.is_sat == 0: 
                         assert not self.is_all_assigned()
+
                 ## If too much conflicts, RESTART IT NOW !
                 self.conflict_count += 1
                 if self.conflict_count > self.restart_rate:
                     self.restart()
-
-
-            # print(stop, self.is_sat, self.conflict)
-            # assert self.conflict is None
 
         assert self.is_sat != 0
         assert self.is_sat == self.formula.get_value()
@@ -217,7 +182,6 @@ class CDCL_Solver:
             print('UNRESOLVED !')
 
         ## Check it
-
         assigned_vars = self.graph.assigned_vars
         test_formula = CNF_Formula(self.list_clause)
         test_formula.formula = [Clause(c) for c in self.list_clause if len(c) > 0]
@@ -225,20 +189,11 @@ class CDCL_Solver:
         for i, literal in enumerate(assigned_vars):
             test_formula.bcp(literal, i, test_graph)
 
-        # if conflict is not None:
-        #     conflict.print_info()
-
         if self.is_sat == 1:
-            # print(test_formula.value)
-            # test_list_value = [c.value for c in test_formula.formula]
-            # list_value = [c.value for c in self.formula.formula]
-            # print(list_value[:])
-            # print(test_list_value)
-            # print(assigned_vars)
             assert test_formula.get_value() == 1
-        print('Verified !')
-            
 
+        print('Verified by (re)propagating assignments on original clauses !')
+            
         return self.formula.get_value    
         
     

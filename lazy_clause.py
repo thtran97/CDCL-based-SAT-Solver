@@ -4,9 +4,6 @@ class Lazy_Clause:
     
     def __init__(self, list_literal):
         assert len(list_literal) > 0
-        #### DELETE THIS AFTER TEST
-        # self.normal_clause = Clause(list_literal)
-        ####
         self.clause = list_literal
         self.decision_level = [-1 for _ in self.clause]
         self.value = 0 # 0 = UNASSIGNED, 1 =  TRUE, -1 = FALSE
@@ -23,11 +20,11 @@ class Lazy_Clause:
 
     def print_info(self):
         print('[C] Remaining clause: ', self.clause[:self.size])
-        print('[C] Refs: ', self.refA, self.refB)
-        print('[C] Index: ', self.indexA, self.indexB)
-        print('[C] Truth value: ', self.value)
-        print('[C] Full clause ', self.clause)
-        print('[C] Details on decision_level: ', self.decision_level)
+        # print('[C] Refs: ', self.refA, self.refB)
+        # print('[C] Index: ', self.indexA, self.indexB)
+        # print('[C] Truth value: ', self.value)
+        # print('[C] Full clause ', self.clause)
+        # print('[C] Details on decision_level: ', self.decision_level)
 
     def is_unit(self):
         if self.size == 1:
@@ -71,28 +68,16 @@ class Lazy_Clause:
         # self.indexB = self.clause.index(self.refB)
 
     def check_n_update(self, graph):
-        # print('Before check')
-        # self.print_info()
-        # assert self.size > 0
         assigned_vars = graph.assigned_vars
         sat_dl = []
         for i in range(len(self.clause)):
-            # If there is one true literal in list of assigned variables => SAT and break
+            # If there is one true literal in list of assigned variables => SAT 
             if self.clause[i] in assigned_vars:
                 self.decision_level[i] = graph.graph[self.clause[i]][1]
                 sat_dl.append(graph.graph[self.clause[i]][1])
-                # for i in range(self.size):
-                #     # if self.decision_level[i] == -1:
-                    #     self.decision_level[i] = previous_decision_level
-                #     self.decision_level[i] = previous_decision_level
-                # self.value = 1
-                # self.size = 0
-                # self.remove_refs()
-                # break
             # Else if the literal is false, update info
             elif -self.clause[i] in assigned_vars and self.decision_level[i] == -1:
                 self.decision_level[i] = graph.graph[-self.clause[i]][1]
-                # self.size -= 1
             # Else continue checking next literal
             else: continue 
         
@@ -115,30 +100,22 @@ class Lazy_Clause:
         if self.size > 0:
             ## But unassigned literals now are at the end (decision_level = -1) 
             ## So move them to the head
-            # print('After check 1')
-            # self.print_info()
             self.clause = self.clause[-self.size:] + self.clause[:-self.size]
             self.decision_level = self.decision_level[-self.size:] + self.decision_level[:-self.size]
-            # self.print_info()
             ## After moving too many times, indexes and refs are also changes
             ## Update them !
-            # self.print_info()
             self.indexA = self.clause.index(self.refA)
             self.indexB = self.clause.index(self.refB)
             self.pick_new_ref()
-
             assert self.value == 0
-            if self.size == 1:
-            #     # self.print_info()
-            #     # print(assigned_vars)
-                for l in self.clause[self.size:]:
-                    assert -l in assigned_vars 
+            # if self.size == 1:
+            #     for l in self.clause[self.size:]:
+            #         assert -l in assigned_vars 
         else:
             if self.value != 1:
                 self.value = -1
                 self.remove_refs()
-
-        assert self.size == self.decision_level.count(-1)
+        # assert self.size == self.decision_level.count(-1)
 
     def pick_new_ref(self):
         assert self.size > 0
@@ -161,7 +138,6 @@ class Lazy_Clause:
                 if self.refB in pool_refs: # keep refB
                     pool_refs.remove(self.refB)
                     B_ok = True
-                # print(pool_refs, self.refA, self.refB)
                 if not A_ok:
                     assert len(pool_refs) > 0 
                     self.refA = random.choice(pool_refs)
@@ -177,45 +153,10 @@ class Lazy_Clause:
             
         self.indexA = self.clause.index(self.refA)
         self.indexB = self.clause.index(self.refB)
-       
-        # # self.print_info()
-        # if refA : #pick new refA
-        #     # assert self.decision_level[self.indexA] != -1
-        #     if self.size == 1:
-        #         self.refA = self.clause[0]
-        #         self.indexA = 0
-        #     else: 
-        #         # print(self.indexA, self.refB)
-        #         if self.refA is None or self.decision_level[self.indexA] != -1:
-        #             for i in range(self.size):
-        #                 if self.clause[i] != self.refB:
-        #                     assert self.decision_level[i] == -1
-        #                     self.refA  = self.clause[i]
-        #                     self.indexA = i
-            
-        # if refB: #pick new refB
-        #     # assert self.decision_level[self.indexB] != -1
-        #     if self.size == 1:
-        #         self.refB = self.clause[0]
-        #         self.indexB = 0
-        #     else: 
-        #         # print(self.indexB)
-        #         if self.refB is None or self.decision_level[self.indexB] != -1:
-        #             for i in range(self.size):
-        #                 if self.clause[i] != self.refA:
-        #                     assert self.decision_level[i] == -1
-        #                     self.refB  = self.clause[i]
-        #                     self.indexB = i
 
-        # self.indexA = self.clause.index(self.refA)
-        # self.indexB = self.clause.index(self.refB)
-
-        # self.print_info()
         assert self.decision_level[self.indexA] == -1
         assert self.decision_level[self.indexB] == -1
         if self.size > 1:
-            # print('after picking')
-            # self.print_info()
             assert self.refA != self.refB
 
     def remove_refs(self):
@@ -240,11 +181,8 @@ class Lazy_Clause:
             assert self.decision_level[self.indexA] == -1
             assert self.value == 0
             assert decision_level >= max(self.decision_level)
-            for l in self.clause[self.size:]:
-                # if -l not in graph.assigned_vars:
-                #     self.print_info()
-                #     print("", l)
-                assert -l in graph.assigned_vars 
+            # for l in self.clause[self.size:]:
+            #     assert -l in graph.assigned_vars 
 
             if literal == self.refA: #SAT
                 self.decision_level[self.indexA] = decision_level
@@ -268,91 +206,21 @@ class Lazy_Clause:
             assert self.value == 0
             assert self.decision_level[self.indexA] == -1
             assert self.decision_level[self.indexB] == -1
-            # if decision_level < max(self.decision_level):
-            #     print(decision_level, max(self.decision_level))
-            #     self.print_info()
+
             assert decision_level >= max(self.decision_level)
-            if literal == self.refA or literal == self.refB: #SAT
-                # Assume that every unassigned literal is assigned at this level
-                # thanks to the BCP of litteral at this level
-                # self.decision_level[:self.size] = [decision_level for _ in range(self.size)]
-                # self.value = 1 
-                # self.size = 0
-                # self.remove_refs()
+            if literal == self.refA or literal == self.refB: #SAT => Check
                 self.check_n_update(graph)
-            elif -literal == self.refA or -literal == self.refB: #CHECK CLAUSE
-                # check and update other literals 
-                # if there is one true -> SAT
-                # print('Check at lvl ', decision_level)
-                self.check_n_update(graph)
-                # print('After check')
-                # self.print_info()
-                # else, clause is not resolved yet, update selected literal and replace references
-                # if self.value == 0:
-                #     self.print_info()
-                #     assert self.size > 1
-                    # Case 3.1: refA is False, replace refA
-                    # if -literal == self.refA:
-                    #     self.clause[self.indexA] = self.clause[self.size-1]
-                    #     self.clause[self.size-1] = self.refA
-                    #     self.indexA = self.size-1
-                    #     self.decision_level[self.indexA] = decision_level
-                    #     self.size -= 1
-                    #     assert self.size > 0
-                    #     self.pick_new_ref(refA=True, refB=False)
-                    #     self.indexB = self.clause.index(self.refB)
-                        # if self.size == 1:
-                        #     self.refA = self.clause[0]
-                        #     self.indexA = 0
-                        #     self.refB = self.refA
-                        #     self.indexB = self.indexA
-                        # elif self.size > 1:
-                        #     self.pick_new_ref(refA=True)
-                        #     return 0
-                        # else:
-                        #     self.value = -1
-                        #     return -1
-                    # Case 3.2: refB is False, replace refB
-                    # elif -literal == self.refB:
-                    #     self.clause[self.indexB] = self.clause[self.size-1]
-                    #     self.clause[self.size-1] = self.refB
-                    #     self.indexB = self.size -1 
-                    #     self.decision_level[self.indexB] = decision_level
-                    #     self.size -= 1
-                    #     assert self.size > 0
-                    #     self.pick_new_ref(refA=False, refB=True)
-                    #     self.indexA = self.clause.index(self.refA)
-                        # if self.size == 1:
-                        #     self.refB = self.clause[0]
-                        #     self.indexB = 0
-                        #     self.refA = self.refB
-                        #     self.indexA = self.indexB
-                        # elif self.size > 1:
-                        #     self.pick_new_ref(refB=True)
-                        #     return 0
-                        # else: 
-                        #     self.value = -1
-                        #     return -1 
-                    # assert self.value == 0
+            elif -literal == self.refA or -literal == self.refB: #Check 
+                self.check_n_update(graph) 
             else:  
                 pass
         assert self.size == self.decision_level.count(-1)
-        # full_clause = Clause(self.clause)
-        # for i, l in enumerate(graph.assigned_vars):
-        #     full_clause.bcp(l,i)
-        # if self.value == 1 and full_clause.value == -1:
-        #     print(self.clause, full_clause.value)
-        #     print(graph.assigned_vars)
+
         return self.value
             
 
     def restore(self, level, graph):
-        # print('Assignment: ', graph.graph)
-        # print('Before restore at lvl ', level)
-        # self.print_info()
-        # print('Try to update before restore')
         self.update(graph)
-        # self.print_info()
         offset = 0
         for lvl in self.decision_level:
             if lvl == -1 or lvl > level:
@@ -362,34 +230,21 @@ class Lazy_Clause:
         if self.size > 0:
             self.value = 0
             self.decision_level[:self.size] = [-1 for _ in range(self.size)]
-            # if self.decision_level[self.indexA] >= 0:
-            #     self.pick_new_ref(refA=True)
-            # if self.decision_level[self.indexB] >= 0:
-            #     self.pick_new_ref(refB=True)
             self.pick_new_ref()
         else:
             
             self.remove_refs()
-            
-        # print("After restore at lvl ", level)
-        # self.print_info()
+
         assert self.size == self.decision_level.count(-1)
         assert max(self.decision_level) <= level
-        # if self.size == 1:
-        #     # print(level)
-        #     # self.print_info()
-        #     # for item in graph.graph.keys():
-        #     #     print(item, graph.graph[item][1])
-        #     for l in self.clause[self.size:]:
-        #         assert -l in graph.assigned_vars 
-        if self.size >= 1:
-            for i,l in enumerate(self.clause):
-                if i < self.size:
-                    assert l not in graph.assigned_vars
-                    assert -l not in graph.assigned_vars
-                else:
-                    assert -l in graph.assigned_vars
-                    assert l not in graph.assigned_vars
+        # if self.size >= 1:
+        #     for i,l in enumerate(self.clause):
+        #         if i < self.size:
+        #             assert l not in graph.assigned_vars
+        #             assert -l not in graph.assigned_vars
+        #         else:
+        #             assert -l in graph.assigned_vars
+        #             assert l not in graph.assigned_vars
 
     def literal_at_level(self, lvl):
         res = []
@@ -399,9 +254,6 @@ class Lazy_Clause:
         return res
 
     def get_backtrack_level(self):
-        # if len(self.decision_level) == 1:
-        #     return -1 
-        # else:
         m1, m2 = -1, -1
         for x in list(set(self.decision_level)):
             if x >= m1:
@@ -423,10 +275,6 @@ class Lazy_Clause:
                     res.append(l)
                     dl.append(other.decision_level[i])
                 elif l not in res and -l in res:
-                    self.print_info()
-                    print("and")
-                    other.print_info()
-
                     res = []
                     dl = []
                     break
