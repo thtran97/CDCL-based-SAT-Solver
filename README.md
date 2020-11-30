@@ -1,36 +1,33 @@
 # SAT-Solving
 
 This repo includes my implementations for solving SAT problems as well as its variants. 
-The core idea is to try to implement complete and imcomplete search algos. In particular, my work focuses on CDCL, Local Search and MaxSAT. 
-Besides I hope to implement also some KC techniques in this repo. 
+The core idea is firsly to (re)implement complete search algorithms. In particular, this code repository will mainly focus on CDCL solver based on the basic DPLL solver.
 
 All implementations will be coded in Python. 
 
-Let's start ! 
+Let's start by:
 
-- [x] Download / create some CNF instances
+- [x] Download / create some CNF instances (e.g. [SAT Lib benchmarks](https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html))
 - [x] Read and load input data => dimacs_parser.py
-- [x] Create a common SAT solver e.g. original dpll_solver.py
+- [x] Specify parameters such as input instances => utils.py
+- [x] Launch SAT solver on terminal => main.py
+- [x] Verbose option : if verbose mode is on, let's plot "problem statistics" and "search statistics" (inspired by minisat, but still need to add & update printed informations)
+- [x] Create a basic complete SAT solver e.g. original dpll_solver.py
+- [X] Implement CDCL solver => cdcl_solver.py
 
-In next steps => try to involve the original sat solver with its known variants and additional features in order to boost the search, e.g. CDCL-solver
-
-- Add verbose option : if verbose mode is on, let's plot "problem statistics" and "search statistics" => like minisat
-
-    + [ ] Search statistics: https://github.com/niklasso/minisat/blob/master/minisat/core/Solver.cc#L856
-
-    + [ ] Problem statistics: https://github.com/niklasso/minisat/blob/master/minisat/core/Main.cc#L92 
-
-
-# Updates
+More precisely, some necessary functions of CDCL solver are the followings:
  
-- [X] Implement function "Conflict analysis"
-- [X] Implement function "Backtracking"
-- [X] Implement fucntion "Search"
-- [X] CDCL Search
+- [X] Conflict analysis
+- [X] Backtracking
+- [X] Search => by BCP and Unit Propagate (UP)
+- [X] Stopping criterion
 - [X] Two-watched literals
 - [X] Simple restart
 - [X] Simple branching heuristics 
 
+# How to launch? 
+
+Simply put, just install some SAT benchmarking instances and declare its path when lauching main.py. Let's wait for the response ! 
 
 # Analytics
 
@@ -38,7 +35,14 @@ Solver now can answer correctly some simple instances. But with harder instances
 
 # TODO
 
-- [ ] Clean and simplify code if possible
-- [ ] Add complex mechanism of restart and branching heuristics 
+- [ ] Simplify code if possible => Honestly, there exists many parts of codes in which, maybe, I complicated matters :(  
+- [ ] Add complex mechanism of restart and branching heuristics => Seems challenging but, certainly possible ! 
+
+# References
+
+- MiniSat open source [[Git](https://github.com/niklasso/minisat)]
+- PySat open source [[Git](https://github.com/pysathq/pysat)] [[Doc](https://pysathq.github.io/#)]
+
+
  
 
